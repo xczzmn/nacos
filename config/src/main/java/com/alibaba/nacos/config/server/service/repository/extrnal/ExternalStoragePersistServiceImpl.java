@@ -42,6 +42,7 @@ import com.alibaba.nacos.config.server.service.repository.PaginationHelper;
 import com.alibaba.nacos.config.server.service.repository.PersistService;
 import com.alibaba.nacos.config.server.utils.LogUtil;
 import com.alibaba.nacos.config.server.utils.ParamUtils;
+import com.alibaba.nacos.config.server.utils.PropertyUtil;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
@@ -2063,31 +2064,30 @@ public class ExternalStoragePersistServiceImpl implements PersistService {
         
         final String sql =
                 "INSERT INTO config_info(data_id,group_id,tenant_id,app_name,content,md5,src_ip,src_user,gmt_create,"
-                        + "gmt_modified,c_desc,c_use,effect,type,c_schema) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                        + "gmt_modified,c_desc,c_use,effect,type,c_schema) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                        + (PropertyUtil.isUseKingbaseDB() ? " RETURNING id;" : ";");
         
         try {
-            jt.update(new PreparedStatementCreator() {
-                @Override
-                public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, configInfo.getDataId());
-                    ps.setString(2, configInfo.getGroup());
-                    ps.setString(3, tenantTmp);
-                    ps.setString(4, appNameTmp);
-                    ps.setString(5, configInfo.getContent());
-                    ps.setString(6, md5Tmp);
-                    ps.setString(7, srcIp);
-                    ps.setString(8, srcUser);
-                    ps.setTimestamp(9, time);
-                    ps.setTimestamp(10, time);
-                    ps.setString(11, desc);
-                    ps.setString(12, use);
-                    ps.setString(13, effect);
-                    ps.setString(14, type);
-                    ps.setString(15, schema);
-                    return ps;
-                }
-            }, keyHolder);
+            PreparedStatementCreator preparedStatementCreator = connection -> {
+                PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, configInfo.getDataId());
+                ps.setString(2, configInfo.getGroup());
+                ps.setString(3, tenantTmp);
+                ps.setString(4, appNameTmp);
+                ps.setString(5, configInfo.getContent());
+                ps.setString(6, md5Tmp);
+                ps.setString(7, srcIp);
+                ps.setString(8, srcUser);
+                ps.setTimestamp(9, time);
+                ps.setTimestamp(10, time);
+                ps.setString(11, desc);
+                ps.setString(12, use);
+                ps.setString(13, effect);
+                ps.setString(14, type);
+                ps.setString(15, schema);
+                return ps;
+            };
+            jt.update(preparedStatementCreator, keyHolder);
             Number nu = keyHolder.getKey();
             if (nu == null) {
                 throw new IllegalArgumentException("insert config_info fail");
@@ -2103,8 +2103,8 @@ public class ExternalStoragePersistServiceImpl implements PersistService {
     public void addConfigTagsRelation(long configId, String configTags, String dataId, String group, String tenant) {
         if (StringUtils.isNotBlank(configTags)) {
             String[] tagArr = configTags.split(",");
-            for (int i = 0; i < tagArr.length; i++) {
-                addConfigTagRelationAtomic(configId, tagArr[i], dataId, group, tenant);
+            for (String s : tagArr) {
+                addConfigTagRelationAtomic(configId, s, dataId, group, tenant);
             }
         }
     }

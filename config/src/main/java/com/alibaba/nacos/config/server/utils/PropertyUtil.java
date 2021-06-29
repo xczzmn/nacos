@@ -96,6 +96,11 @@ public class PropertyUtil implements ApplicationContextInitializer<ConfigurableA
      * Standalone mode uses DB.
      */
     private static boolean useExternalDB = false;
+
+    /**
+     * uses Kingbase DB.
+     */
+    private static boolean useKingbaseDB = false;
     
     /**
      * Inline storage value = ${nacos.standalone}.
@@ -233,7 +238,15 @@ public class PropertyUtil implements ApplicationContextInitializer<ConfigurableA
     public static void setUseExternalDB(boolean useExternalDB) {
         PropertyUtil.useExternalDB = useExternalDB;
     }
-    
+
+    public static boolean isUseKingbaseDB() {
+        return useKingbaseDB;
+    }
+
+    public static void setUseKingbaseDB(boolean useKingbaseDB) {
+        PropertyUtil.useKingbaseDB = useKingbaseDB;
+    }
+
     public static boolean isEmbeddedStorage() {
         return embeddedStorage;
     }
@@ -281,7 +294,11 @@ public class PropertyUtil implements ApplicationContextInitializer<ConfigurableA
             setInitialExpansionPercent(getInt(PropertiesConstant.INITIAL_EXPANSION_PERCENT, initialExpansionPercent));
             // External data sources are used by default in cluster mode
             setUseExternalDB(PropertiesConstant.MYSQL
-                    .equalsIgnoreCase(getString(PropertiesConstant.SPRING_DATASOURCE_PLATFORM, "")));
+                    .equalsIgnoreCase(getString(PropertiesConstant.SPRING_DATASOURCE_PLATFORM, ""))
+                || PropertiesConstant.KINGBASE
+                .equalsIgnoreCase(getString(PropertiesConstant.SPRING_DATASOURCE_PLATFORM, "")));
+            setUseKingbaseDB(PropertiesConstant.KINGBASE
+                .equalsIgnoreCase(getString(PropertiesConstant.SPRING_DATASOURCE_PLATFORM, "")));
             
             // must initialize after setUseExternalDB
             // This value is true in stand-alone mode and false in cluster mode
