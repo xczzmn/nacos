@@ -96,8 +96,9 @@ public class TenantCapacityPersistService {
      */
     public boolean insertTenantCapacity(final TenantCapacity tenantCapacity) {
         final String sql =
-                "INSERT INTO tenant_capacity (tenant_id, quota, `usage`, `max_size`, max_aggr_count, max_aggr_size, "
-                        + "gmt_create, gmt_modified) SELECT ?, ?, count(*), ?, ?, ?, ?, ? FROM config_info WHERE tenant_id=?;";
+            "INSERT INTO tenant_capacity (tenant_id, quota, `usage`, `max_size`, max_aggr_count, max_aggr_size, "
+                + "gmt_create, gmt_modified) SELECT ?, ?, count(*), ?, ?, ?, ?, ? FROM config_info WHERE tenant_id=?"
+                + (PropertyUtil.isUseKingbaseDB() ? " RETURNING id;" : ";");
         try {
             GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
             PreparedStatementCreator preparedStatementCreator = new PreparedStatementCreator() {

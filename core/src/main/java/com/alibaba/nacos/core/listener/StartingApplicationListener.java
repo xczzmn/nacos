@@ -70,6 +70,8 @@ public class StartingApplicationListener implements NacosApplicationListener {
     private static final String DEFAULT_FUNCTION_MODE = "All";
     
     private static final String DEFAULT_DATABASE = "mysql";
+
+    public static final String KINGBASE = "kingbase";
     
     private static final String DATASOURCE_PLATFORM_PROPERTY = "spring.datasource.platform";
     
@@ -246,13 +248,14 @@ public class StartingApplicationListener implements NacosApplicationListener {
         
         // External data sources are used by default in cluster mode
         boolean useExternalStorage = (DEFAULT_DATABASE.equalsIgnoreCase(env.getProperty(DATASOURCE_PLATFORM_PROPERTY, DEFAULT_DATASOURCE_PLATFORM)));
-        
+        boolean useExternalStorageKingbase = (KINGBASE.equalsIgnoreCase(env.getProperty(DATASOURCE_PLATFORM_PROPERTY, DEFAULT_DATASOURCE_PLATFORM)));
+
         // must initialize after setUseExternalDB
         // This value is true in stand-alone mode and false in cluster mode
         // If this value is set to true in cluster mode, nacos's distributed storage engine is turned on
         // default value is depend on ${nacos.standalone}
         
-        if (!useExternalStorage) {
+        if (!useExternalStorage && !useExternalStorageKingbase) {
             boolean embeddedStorage = EnvUtil.getStandaloneMode() || Boolean.getBoolean("embeddedStorage");
             // If the embedded data source storage is not turned on, it is automatically
             // upgraded to the external data source storage, as before

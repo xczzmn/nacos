@@ -33,9 +33,9 @@ import static com.alibaba.nacos.common.utils.CollectionUtils.getOrDefault;
  * @author Nacos
  */
 public class ExternalDataSourceProperties {
-    
-    private static final String JDBC_DRIVER_NAME = "com.mysql.cj.jdbc.Driver";
-    
+
+    private List<String> driver;
+
     private static final String TEST_QUERY = "SELECT 1";
     
     private Integer num;
@@ -45,7 +45,11 @@ public class ExternalDataSourceProperties {
     private List<String> user = new ArrayList<>();
     
     private List<String> password = new ArrayList<>();
-    
+
+    public void setDriver(List<String> driver) {
+        this.driver = driver;
+    }
+
     public void setNum(Integer num) {
         this.num = num;
     }
@@ -75,11 +79,12 @@ public class ExternalDataSourceProperties {
         Preconditions.checkArgument(Objects.nonNull(num), "db.num is null");
         Preconditions.checkArgument(CollectionUtils.isNotEmpty(user), "db.user or db.user.[index] is null");
         Preconditions.checkArgument(CollectionUtils.isNotEmpty(password), "db.password or db.password.[index] is null");
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(driver), "db.driver or db.driver.[index] is null");
         for (int index = 0; index < num; index++) {
             int currentSize = index + 1;
             Preconditions.checkArgument(url.size() >= currentSize, "db.url.%s is null", index);
             DataSourcePoolProperties poolProperties = DataSourcePoolProperties.build(environment);
-            poolProperties.setDriverClassName(JDBC_DRIVER_NAME);
+            poolProperties.setDriverClassName(driver.get(index).trim());
             poolProperties.setJdbcUrl(url.get(index).trim());
             poolProperties.setUsername(getOrDefault(user, index, user.get(0)).trim());
             poolProperties.setPassword(getOrDefault(password, index, password.get(0)).trim());

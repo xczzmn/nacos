@@ -105,12 +105,14 @@ public class GroupCapacityPersistService {
         String sql;
         if (CLUSTER.equals(capacity.getGroup())) {
             sql = "insert into group_capacity (group_id, quota, `usage`, `max_size`, max_aggr_count, max_aggr_size, "
-                    + "gmt_create, gmt_modified) select ?, ?, count(*), ?, ?, ?, ?, ? from config_info;";
+                + "gmt_create, gmt_modified) select ?, ?, count(*), ?, ?, ?, ?, ? from config_info"
+                + (PropertyUtil.isUseKingbaseDB() ? " RETURNING id;" : ";");
         } else {
             // Note: add "tenant_id = ''" condition.
             sql = "insert into group_capacity (group_id, quota, `usage`, `max_size`, max_aggr_count, max_aggr_size, "
-                    + "gmt_create, gmt_modified) select ?, ?, count(*), ?, ?, ?, ?, ? from config_info where "
-                    + "group_id=? and tenant_id = '';";
+                + "gmt_create, gmt_modified) select ?, ?, count(*), ?, ?, ?, ?, ? from config_info where "
+                + "group_id=? and tenant_id = ''"
+                + (PropertyUtil.isUseKingbaseDB() ? " RETURNING id;" : ";");
         }
         return insertGroupCapacity(sql, capacity);
     }
